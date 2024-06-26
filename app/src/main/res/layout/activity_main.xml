@@ -56,13 +56,7 @@
         app:layout_constraintStart_toStartOf="@+id/linearLayout"
         app:layout_constraintTop_toBottomOf="@+id/linearLayout" />
 
-    <TextView
-        android:id="@+id/textViewNumber"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="24dp"
-        app:layout_constraintStart_toStartOf="@+id/linearLayout"
-        app:layout_constraintTop_toBottomOf="@+id/btnAdd" />
+
 
     <Button
         android:id="@+id/buttonStart"
@@ -85,14 +79,18 @@
         app:layout_constraintBottom_toBottomOf="@+id/buttonStart"
         app:layout_constraintEnd_toEndOf="parent" />
 
-    <Button
-        android:id="@+id/buttonDel"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/delete"
-        android:visibility="gone"
-        android:backgroundTint="@android:color/holo_red_light"
-        app:layout_constraintBottom_toBottomOf="@+id/textViewNumber"
-        app:layout_constraintEnd_toEndOf="@+id/btnAdd"
-        app:layout_constraintTop_toTopOf="@+id/textViewNumber" />
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recyclerView"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginStart="24dp"
+        android:layout_marginTop="24dp"
+        android:layout_marginEnd="24dp"
+        android:layout_marginBottom="16dp"
+        app:layout_constraintBottom_toTopOf="@+id/buttonStart"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/btnAdd" />
+
+
 </androidx.constraintlayout.widget.ConstraintLayout>

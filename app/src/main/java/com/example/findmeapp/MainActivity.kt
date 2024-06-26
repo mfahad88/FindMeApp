@@ -7,16 +7,24 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import android.Manifest
 import android.content.Intent
+import android.util.Log
 import android.widget.Toast
+import androidx.activity.viewModels
 import androidx.lifecycle.Observer
+import androidx.recyclerview.widget.LinearLayoutManager
+import com.example.findmeapp.adapter.UserAdapter
 import com.example.findmeapp.databinding.ActivityMainBinding
 import com.example.findmeapp.helper.AppConstant
+import com.example.findmeapp.helper.AppDatabase
 import com.example.findmeapp.helper.Utils
+import com.example.findmeapp.model.User
 import com.example.findmeapp.services.MyForegroundService
+import com.example.findmeapp.viewmodel.UserViewModel
 
 
 class MainActivity : AppCompatActivity() {
     lateinit var binding: ActivityMainBinding
+    private val userViewModel: UserViewModel by viewModels()
     companion object {
         private const val MULTIPLE_PERMISSIONS_REQUEST_CODE = 1
     }
@@ -36,9 +44,12 @@ class MainActivity : AppCompatActivity() {
         setContentView(binding.root)
         checkAndRequestPermissions()
         addTracker()
-
+        initRecycler()
+        userViewModel.mutableLiveData.observe(this, Observer { users->
+            (binding.recyclerView.adapter as UserAdapter).addItem(users)
+        })
         if(Utils.getNumber(this)?.isNotEmpty() == true){
-            binding.textViewNumber.text=Utils.getNumber(this)
+//            binding.textViewNumber.text=Utils.getNumber(this)
         }
 
        if( Utils.getService(this)=="1"){
@@ -55,6 +66,13 @@ class MainActivity : AppCompatActivity() {
 
         binding.buttonStop.setOnClickListener {
             stopService()
+        }
+    }
+
+    private fun initRecycler() {
+        binding.recyclerView.apply {
+            layoutManager=LinearLayoutManager(this@MainActivity,LinearLayoutManager.VERTICAL,false)
+            adapter = UserAdapter()
         }
     }
 
@@ -135,10 +153,11 @@ class MainActivity : AppCompatActivity() {
         binding.btnAdd.setOnClickListener {
             Utils.hideKeyboardFrom(this@MainActivity,binding.btnAdd)
             if(binding.edtPhone.text.isNotEmpty() && binding.edtPhone.text.length==11){
-                Utils.saveSharedPreferences(this@MainActivity,AppConstant.NUMBER,binding.edtPhone.text.toString())
-                if(Utils.getNumber(this)?.isNotEmpty() == true){
-                    binding.textViewNumber.text=Utils.getNumber(this)
-                }
+                userViewModel.insertUser(this@MainActivity,
+                    User(number = binding.edtPhone.text.toString())
+                )
+                binding.edtPhone.text.clear()
+
             }
         }
 
