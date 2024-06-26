@@ -34,7 +34,8 @@
         </activity>
         <service
             android:name=".services.MyForegroundService"
-            android:exported="false"/>
+            android:exported="false"
+            android:foregroundServiceType="location"/>
 
         <receiver
             android:name=".broadcast.BootReceiver"

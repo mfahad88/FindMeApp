@@ -18,8 +18,7 @@ import com.example.findmeapp.services.MyForegroundService
 class MainActivity : AppCompatActivity() {
     lateinit var binding: ActivityMainBinding
     companion object {
-        private const val SMS_PERMISSION_CODE = 101
-        private const val LOCATION_PERMISSION_CODE = 102
+        private const val MULTIPLE_PERMISSIONS_REQUEST_CODE = 1
     }
 
     override fun onResume() {
@@ -82,32 +81,32 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun checkAndRequestPermissions() {
-        val writesmsPermission = ContextCompat.checkSelfPermission(this,Manifest.permission.SEND_SMS)
-        val readsmsPermission = ContextCompat.checkSelfPermission(this,Manifest.permission.READ_SMS)
-        val receivesmsPermission = ContextCompat.checkSelfPermission(this,Manifest.permission.RECEIVE_SMS)
-        val fineLocationPermission = ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
-        val coarseLocationPermission = ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION)
+        val permissionsNeeded = mutableListOf<String>()
 
-        val listPermissionsNeeded = mutableListOf<String>()
-
-        if (writesmsPermission != PackageManager.PERMISSION_GRANTED) {
-            listPermissionsNeeded.add(Manifest.permission.SEND_SMS)
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            permissionsNeeded.add(Manifest.permission.ACCESS_FINE_LOCATION)
         }
-        if (readsmsPermission != PackageManager.PERMISSION_GRANTED) {
-            listPermissionsNeeded.add(Manifest.permission.READ_SMS)
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            permissionsNeeded.add(Manifest.permission.ACCESS_COARSE_LOCATION)
         }
-        if (receivesmsPermission != PackageManager.PERMISSION_GRANTED) {
-            listPermissionsNeeded.add(Manifest.permission.RECEIVE_SMS)
+       /* if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_BACKGROUND_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            permissionsNeeded.add(Manifest.permission.ACCESS_BACKGROUND_LOCATION)
+        }*/
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.SEND_SMS) != PackageManager.PERMISSION_GRANTED) {
+            permissionsNeeded.add(Manifest.permission.SEND_SMS)
         }
-        if (fineLocationPermission != PackageManager.PERMISSION_GRANTED) {
-            listPermissionsNeeded.add(Manifest.permission.ACCESS_FINE_LOCATION)
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.RECEIVE_SMS) != PackageManager.PERMISSION_GRANTED) {
+            permissionsNeeded.add(Manifest.permission.RECEIVE_SMS)
         }
-        if (coarseLocationPermission != PackageManager.PERMISSION_GRANTED) {
-            listPermissionsNeeded.add(Manifest.permission.ACCESS_COARSE_LOCATION)
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_SMS) != PackageManager.PERMISSION_GRANTED) {
+            permissionsNeeded.add(Manifest.permission.READ_SMS)
         }
 
-        if (listPermissionsNeeded.isNotEmpty()) {
-            ActivityCompat.requestPermissions(this, listPermissionsNeeded.toTypedArray(), SMS_PERMISSION_CODE)
+        if (permissionsNeeded.isNotEmpty()) {
+            ActivityCompat.requestPermissions(this, permissionsNeeded.toTypedArray(), MULTIPLE_PERMISSIONS_REQUEST_CODE)
+        } else {
+            // All permissions are already granted
+            Toast.makeText(this, "All permissions are already granted", Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -118,23 +117,17 @@ class MainActivity : AppCompatActivity() {
     ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         when (requestCode) {
-            SMS_PERMISSION_CODE -> {
-                val smsPermissionGranted = grantResults[0] == PackageManager.PERMISSION_GRANTED
-                val fineLocationPermissionGranted = grantResults[1] == PackageManager.PERMISSION_GRANTED
-                val coarseLocationPermissionGranted = grantResults[2] == PackageManager.PERMISSION_GRANTED
-
-                if (smsPermissionGranted && fineLocationPermissionGranted && coarseLocationPermissionGranted) {
-                    // All permissions are granted, proceed with the functionality that requires these permissions
-                    // e.g., send SMS or access GPS location
+            MULTIPLE_PERMISSIONS_REQUEST_CODE -> {
+                val permissionsGranted = grantResults.isNotEmpty() && grantResults.all { it == PackageManager.PERMISSION_GRANTED }
+                if (permissionsGranted) {
                     addTracker()
                 } else {
-                    // Permissions are denied, show a message to the user
-                    Toast.makeText(this, "Permissions are required for this app to function", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this, "Some permissions were denied", Toast.LENGTH_SHORT).show()
                     finish()
                     System.exit(0)
-
                 }
             }
+
         }
     }
 

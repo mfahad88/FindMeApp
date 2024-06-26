@@ -30,7 +30,7 @@ class SmsBroadcastReceiver : BroadcastReceiver() {
                     for (pdu in pdus) {
                         val smsMessage = SmsMessage.createFromPdu(pdu as ByteArray)
                         val sender = smsMessage.displayOriginatingAddress.replace("+92","0")
-                        val messageBody = smsMessage.messageBody
+                        val messageBody = smsMessage.messageBody.lowercase()
                         val messageAddress = smsMessage.originatingAddress
 
                         if(sender==Utils.getNumber(context)){
