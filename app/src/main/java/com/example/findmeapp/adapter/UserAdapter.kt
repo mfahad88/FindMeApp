@@ -6,7 +6,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.findmeapp.databinding.ItemUserBinding
 import com.example.findmeapp.model.User
 
-class UserAdapter() : RecyclerView.Adapter<UserAdapter.UserViewHolder>() {
+class UserAdapter(val onItemClick:(user:User)->Unit) : RecyclerView.Adapter<UserAdapter.UserViewHolder>() {
     var userList: List<User>? = null
 
     fun addItem(userList: List<User>){
@@ -36,6 +36,9 @@ class UserAdapter() : RecyclerView.Adapter<UserAdapter.UserViewHolder>() {
     inner class UserViewHolder(private val binding: ItemUserBinding) : RecyclerView.ViewHolder(binding.root) {
         fun bind(user: User) {
             binding.userNumberTextView.text = user.number
+            binding.imageViewDelete.setOnClickListener {
+                onItemClick(user)
+            }
         }
     }
 }

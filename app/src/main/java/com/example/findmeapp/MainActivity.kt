@@ -42,15 +42,14 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding=ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        userViewModel.context=this
         checkAndRequestPermissions()
         addTracker()
         initRecycler()
         userViewModel.mutableLiveData.observe(this, Observer { users->
             (binding.recyclerView.adapter as UserAdapter).addItem(users)
         })
-        if(Utils.getNumber(this)?.isNotEmpty() == true){
-//            binding.textViewNumber.text=Utils.getNumber(this)
-        }
+
 
        if( Utils.getService(this)=="1"){
            binding.buttonStart.isEnabled=false
@@ -72,7 +71,9 @@ class MainActivity : AppCompatActivity() {
     private fun initRecycler() {
         binding.recyclerView.apply {
             layoutManager=LinearLayoutManager(this@MainActivity,LinearLayoutManager.VERTICAL,false)
-            adapter = UserAdapter()
+            adapter = UserAdapter(){ user->
+                userViewModel.deleteUser(user)
+            }
         }
     }
 
@@ -150,14 +151,16 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun addTracker() {
+        userViewModel.getUsers()
         binding.btnAdd.setOnClickListener {
             Utils.hideKeyboardFrom(this@MainActivity,binding.btnAdd)
-            if(binding.edtPhone.text.isNotEmpty() && binding.edtPhone.text.length==11){
-                userViewModel.insertUser(this@MainActivity,
+            if(binding.edtPhone.text.isNotEmpty() && binding.edtPhone.text.length==11 && binding.recyclerView.adapter!!.itemCount < 5){
+                userViewModel.insertUser(
                     User(number = binding.edtPhone.text.toString())
                 )
                 binding.edtPhone.text.clear()
-
+            }else{
+                Toast.makeText(this@MainActivity, getString(R.string.please_enter_correct_number),Toast.LENGTH_SHORT).show()
             }
         }
 

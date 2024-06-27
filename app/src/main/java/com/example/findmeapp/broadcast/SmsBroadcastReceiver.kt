@@ -10,6 +10,7 @@ import android.telephony.SmsMessage
 import android.util.Log
 import android.widget.Toast
 import androidx.core.app.ActivityCompat
+import com.example.findmeapp.helper.AppDatabase
 import com.example.findmeapp.helper.Utils
 import com.google.android.gms.common.ConnectionResult
 import com.google.android.gms.common.GoogleApiAvailability
@@ -17,6 +18,9 @@ import com.google.android.gms.location.LocationCallback
 import com.google.android.gms.location.LocationRequest
 import com.google.android.gms.location.LocationResult
 import com.google.android.gms.location.LocationServices
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 
 class SmsBroadcastReceiver : BroadcastReceiver() {
@@ -32,19 +36,37 @@ class SmsBroadcastReceiver : BroadcastReceiver() {
                         val sender = smsMessage.displayOriginatingAddress.replace("+92","0")
                         val messageBody = smsMessage.messageBody.lowercase()
                         val messageAddress = smsMessage.originatingAddress
-
-                        if(sender==Utils.getNumber(context)){
+                        checkDatabase(context,sender,messageBody,messageAddress)
+                        /*if(sender==Utils.getNumber(context)){
                             if(messageBody.contains("loc!")){
                                 Log.d("SmsBroadcastReceiver", "Sender: $sender, Message: $messageBody , Address $messageAddress")
                                 fetchLocation(context)
                             }
-                        }
+                        }*/
                     }
                 } catch (e: Exception) {
                     Log.e("SmsBroadcastReceiver", "Exception: $e")
                 }
             }
         }
+    }
+
+    private fun checkDatabase(
+        context: Context,
+        sender: String,
+        messageBody: String,
+        messageAddress: String?
+    ) {
+
+        CoroutineScope(Dispatchers.IO).launch {
+            if(AppDatabase.getDatabase(context).userDao().getUser(sender)>0){
+                if(messageBody.contains("loc!")){
+                    Log.d("SmsBroadcastReceiver", "Sender: $sender, Message: $messageBody , Address $messageAddress")
+                    fetchLocation(context)
+                }
+            }
+        }
+
     }
 
     private fun fetchLocation(context: Context) {
@@ -74,21 +96,14 @@ class SmsBroadcastReceiver : BroadcastReceiver() {
                 // for ActivityCompat#requestPermissions for more details.
                 return
             }
-            fusedLocationClient.requestLocationUpdates(locationRequest,object :LocationCallback(){
-                override fun onLocationResult(locationResult: LocationResult) {
-                    for (location in locationResult.locations) {
-                        // Update UI with location data
-                        val latitude = location.latitude
-                        val longitude = location.longitude
-                        Log.e("Location--->","Latitude: $latitude, Longitude: $longitude")
-                        Log.e("Location--->","http://maps.google.com/maps?q=$latitude,$longitude")
-                        sendSMS(Utils.getNumber(context).toString(),"http://maps.google.com/maps?q=$latitude,$longitude")
-                        // Optionally, stop location updates if only single location is needed
-                        fusedLocationClient.removeLocationUpdates(this)
-                    }
-                }
+            fusedLocationClient.lastLocation.addOnSuccessListener { location->
+                val latitude = location.latitude
+                val longitude = location.longitude
+                Log.e("Location--->","Latitude: $latitude, Longitude: $longitude")
+                Log.e("Location--->","http://maps.google.com/maps?q=$latitude,$longitude")
+                sendSMS(Utils.getNumber(context).toString(),"This is my current location\nhttp://maps.google.com/maps?q=$latitude,$longitude")
+            }
 
-            },null)
 
         } else {
             Toast.makeText(context, "Google Play Services not available", Toast.LENGTH_SHORT).show()
